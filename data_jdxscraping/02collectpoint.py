@@ -8,4 +8,13 @@ Dependency:
 
 """
 
+from scipy.interpolate import CubicSpline
+import pandas as pd
 
+
+def ReadAbsJDX (filename):
+    with open(filename, 'r') as file:
+        for line in file:
+            break
+
+    return
