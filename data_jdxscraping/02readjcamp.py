@@ -9,8 +9,7 @@ Dependency:
 """
 ### Import all required dependencies
 import os, re
-directory = '../absorbancedata'
-#from scipy.interpolate import CubicSpline
+directory = '../testabs'
 import pandas as pd
 
 ### Collection of Functions
