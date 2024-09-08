@@ -45,23 +45,24 @@ moldataset_df = pd.DataFrame(columns=mol_info)
 
 
 for filename in os.listdir(directory):
-    filepath = os.path.join(directory,filename)
-    if os.path.isfile(filepath):
-        with open(filename, 'r') as infile:
-            molinfo_df = pd.DataFrame(columns=mol_info)
-            for line in infile:
-                # strip leading and trailing whitespace
-                stripped_line = line.strip()
-                if stripped_line.startswith('##'):
-                    #if "TITLE" in stripped_line:
-                    matching_string = find_matching_string(line, mol_info[:-2])
-                    if matching_string is not None:
-                        molinfo_df[matching_string] = re.sub(r'^.*?=', '', line)
-                    elif 'XYDATA' in line:
-                        molinfo_df.at[0, 'YDATA'] = extract_ydata(line, infile)
-            infile.close()
-            molinfo_df.at[0, 'XDATA'] = collect_xdata(molinfo_df.at[0,'FIRSTX'], molinfo_df.at[0,'LASTX'], molinfo_df.at[0,'DELTAX'])
-    moldataset_df.append(molinfo_df, ignore_index=True)
+    if not filename.endswith(':Zone.Identifier'):
+        filepath = os.path.join(directory,filename)
+        if os.path.isfile(filepath):
+            with open(filename, 'r') as infile:
+                molinfo_df = pd.DataFrame(columns=mol_info)
+                for line in infile:
+                    # strip leading and trailing whitespace
+                    stripped_line = line.strip()
+                    if stripped_line.startswith('##'):
+                        #if "TITLE" in stripped_line:
+                        matching_string = find_matching_string(line, mol_info[:-2])
+                        if matching_string is not None:
+                            molinfo_df[matching_string] = re.sub(r'^.*?=', '', line)
+                        elif 'XYDATA' in line:
+                            molinfo_df.at[0, 'YDATA'] = extract_ydata(line, infile)
+                infile.close()
+                molinfo_df.at[0, 'XDATA'] = collect_xdata(molinfo_df.at[0,'FIRSTX'], molinfo_df.at[0,'LASTX'], molinfo_df.at[0,'DELTAX'])
+        moldataset_df.append(molinfo_df, ignore_index=True)
 
 print(moldataset_df)
 
