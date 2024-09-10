@@ -2,14 +2,15 @@
 """
 Created on Thr Sep 06 14:49:05 2024
 @author: khari
+The second file in collecting jdx IR data.
 
 Dependency:
 - pandas
 
 """
 ### Import all required dependencies
-import os, re
-directory = '../testabs'
+import os, re, time
+directory = '../absorbancedata'
 import pandas as pd
 
 ### Collection of Functions
@@ -28,17 +29,29 @@ def extract_ydata(line, file):
         line = next(file)
     return ydata
 
-def collect_xdata(firstx, lastx, deltax):
-    xdata = [firstx]
-    while firstx <= lastx:
-        #firstx += firstx + "{:.3f}".format(deltax)
-        firstx += round(deltax, 3)
-        xdata.append(round(firstx, 3))
+'''
+def collect_xdata(minx, maxx, deltax):
+    xdata = [minx]
+    while minx < maxx:
+        #minx += minx + "{:.3f}".format(deltax)
+        minx += round(deltax, 3)
+        xdata.append(round(minx, 3))
+    return xdata
+'''
+
+def collect_xdata(minx, npoints, deltax):
+    xdata = [minx]
+    countern = 1
+    while countern < npoints:
+        #minx += minx + "{:.3f}".format(deltax)
+        minx += round(deltax, 3)
+        xdata.append(round(minx, 3))
+        countern += 1
     return xdata
 
 def XYdata_type(input_dict):
     # define data that need to be converted
-    float_data = ['DELTAX', 'FIRSTX', 'LASTX']
+    float_data = ['DELTAX', 'MINX', 'NPOINTS']
     for i in float_data:
         input_dict[i] = float(input_dict[i])    
     return input_dict
@@ -49,10 +62,11 @@ def XYdata_type(input_dict):
 ####################
 
 ### Create pandas dataframe for storing important informations
-mol_info = ['TITLE', 'CAS REGISTRY NO', 'MOLFORM', 'XUNITS', 'YUNITS', 'YFACTOR', 'DELTAX', 'FIRSTX', 'LASTX', 'XDATA', 'YDATA']
+#mol_info = ['TITLE', 'CAS REGISTRY NO', 'MOLFORM', 'XUNITS', 'YUNITS', 'YFACTOR', 'DELTAX', 'FIRSTX', 'LASTX', 'XDATA', 'YDATA'] #using first and last X cause error
+mol_info = ['TITLE', 'CAS REGISTRY NO', 'MOLFORM', 'XUNITS', 'YUNITS', 'YFACTOR', 'DELTAX', 'MAXX', 'MINX', 'NPOINTS', 'XDATA', 'YDATA']
 moldataset_df = pd.DataFrame(columns=mol_info)
 
-
+start_time = time.time()
 for filename in os.listdir(directory):
     if not filename.endswith(':Zone.Identifier'):
         filepath = os.path.join(directory,filename)
@@ -74,10 +88,17 @@ for filename in os.listdir(directory):
                             singlemol_info['YDATA'] = extract_ydata(line, infile)
                 #singlemol_info['XDATA'] = collect_xdata(molinfo_df.at[0,'FIRSTX'], molinfo_df.at[0,'LASTX'], molinfo_df.at[0,'DELTAX'])
                 XYdata_type(singlemol_info)
-                singlemol_info['XDATA'] = collect_xdata(singlemol_info['FIRSTX'], singlemol_info['LASTX'], singlemol_info['DELTAX'])
+                singlemol_info['XDATA'] = collect_xdata(singlemol_info['MINX'], singlemol_info['NPOINTS'], singlemol_info['DELTAX'])
             infile.close()
         #moldataset_df.append(molinfo_df, ignore_index=True) #append DEPRECATED
         moldataset_df = pd.concat([moldataset_df, pd.DataFrame([singlemol_info])], ignore_index=True)
 
-print(moldataset_df)
+#print(moldataset_df)
+end_time = time.time()
+print (f"Elapsed time to create dataset: {round(end_time - start_time, 2)} seconds")
 
+### Write dataframe to CSV tab-delimiter
+#moldataset_df.to_csv('moldataset_df.csv', sep='\t', encoding='utf-8', index=True, header=True)
+
+def obtain_molinfo():
+    return moldataset_df
