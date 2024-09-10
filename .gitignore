@@ -1,2 +1,5 @@
 absorbancedata/
 testabs/
+data_jdxscraping/moldataset_df.csv
+data_jdxscraping/test.ipynb
+data_jdxscraping/XY_interpolation.csv
