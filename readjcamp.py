@@ -2,7 +2,8 @@
 """
 Created on Thr Sep 06 14:49:05 2024
 @author: khari
-The second file in collecting jdx IR data.
+The third file in collecting jdx IR data.
+This file work by collecting information in a df and file.
 
 Dependency:
 - pandas
@@ -68,7 +69,7 @@ for filename in os.listdir(directory):
             with open(filepath, 'r') as infile:
                 molinfo_df = pd.DataFrame(columns=mol_info)
                 singlemol_info = dict.fromkeys(mol_info, None)
-                singlemol_info['FILENAME'] = filename
+                singlemol_info['FILENAME'] = re.sub(r'_.*', '', filename)
                 for line in infile:
                     # strip leading and trailing whitespace
                     stripped_line = line.strip()

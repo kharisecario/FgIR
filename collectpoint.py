@@ -10,8 +10,7 @@ Dependency:
 
 """
 ### Import all required dependencies
-import os
-import readjcamp
+import readjcamp, re
 from scipy.interpolate import CubicSpline
 import pandas as pd
 import numpy as np
@@ -27,6 +26,17 @@ def get_Yinterpolate(row_df, xcs):
 ####################
 #   Main program   #
 ####################
+
+### Prepare inchi database (as dictionary):
+#inchi_all = pd.read_csv('jdx_files/inchidata_all.txt', sep='\t', header=None)      ### Make it as panda generate more problem when matching!
+#inchi_all.columns = ['FILENAME', 'INCHI']
+inchi_all = {}
+with open('jdx_files/inchidata_all.txt') as infile:
+    for inline in infile:
+        (key, val) = inline.split()
+        inchi_all[key] = re.sub(r'^.*?=', '', val)
+
+### prepare original database:
 moldataset_df = readjcamp.obtain_molinfo()
 
 ### Define new x-axis for interpolation
@@ -37,23 +47,30 @@ xrange = 2
 xinterpolate = [xmax]
 ncounts = 1
 
-'''
-while xmax >= xmin:
-    xmax -= xrange
-    xinterpolate.append(xmax)
-'''
 while ncounts < npoints:
     xmax -= xrange
     xinterpolate.append(xmax)
     ncounts += 1
 
+### Prepare placeholder
 xinterpolate = np.array(xinterpolate)
-
 yinterpolate = np.zeros(shape=(len(moldataset_df.index), len(xinterpolate)))
+#INCHIlabel = np.zeros(shape=(len(moldataset_df.index),1))
+INCHIlabel = []
+
+### Generate interpolate Y
 for index, row in moldataset_df.iterrows():
     yinterpolate[index,:] = get_Yinterpolate(row, xinterpolate)
+    INCHIlabel.append(inchi_all[moldataset_df['FILENAME'][index]])
 
-XYinterpolate_df = pd.DataFrame(yinterpolate, columns=xinterpolate)
-#print(XYinterpolate_df)
 
-XYinterpolate_df.to_csv('XY_interpolation.csv', index=False, header=True)
+XYfeature_df = pd.DataFrame(yinterpolate, columns=xinterpolate)
+
+### Write into file:
+XYfeature_df.to_csv('XYfeature.csv', index=False, header=True)
+print(INCHIlabel)
+with open('INCHIlabel.txt', 'w+') as infile:
+    for item in INCHIlabel:
+        infile.write(f'{item}\n')
+    infile.close()
+
