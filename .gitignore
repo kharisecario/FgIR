@@ -1,7 +1,8 @@
-absorbancedata/
-testabs/
-data_jdxscraping/moldataset_df.csv
-data_jdxscraping/test.ipynb
-data_jdxscraping/XY_interpolation.csv
+archive/
 gsml.code-workspace
 jdx_files/
+test.ipynb
+test.txt
+log_scraping.txt
+moldataset_df.csv
+moldataset_df.txt
