@@ -29,13 +29,13 @@ with open('INCHIlabel.txt') as infile:
     infile.close()
 
 ### Create a placeholder
-func_gr_no = {}
+func_gr_num = {}
 func_gr_present = {}
 fragment_list = []
 with open('fragments_rdkit.txt') as infile:
     for inline in infile:
         fragment_list.append(inline.split()[0])
-        func_gr_no[inline.split()[0]] = []
+        func_gr_num[inline.split()[0]] = []
         func_gr_present[inline.split()[0]] = []
     infile.close()
 
@@ -51,7 +51,7 @@ for each_mol in inchi:
         call_func = f'fr_{func_group}'
         obtain_func_group = getattr(rdkit.Chem.Fragments, call_func)
         total_presence = obtain_func_group(mol)
-        func_gr_no[func_group].append(total_presence)
+        func_gr_num[func_group].append(total_presence)
         if total_presence >= 1:
             func_gr_present[func_group].append(1)
         else:
@@ -59,9 +59,9 @@ for each_mol in inchi:
     n+=1
 
 ### collect to pandas df and write to file
-func_gr_no_DF = pd.DataFrame.from_dict(func_gr_no)
+func_gr_num_DF = pd.DataFrame.from_dict(func_gr_num)
 func_gr_present_DF = pd.DataFrame.from_dict(func_gr_present)
-func_gr_no_DF.to_csv('label_fg_no.csv', index=False, header=True)
+func_gr_num_DF.to_csv('label_fg_count.csv', index=False, header=True)
 func_gr_present_DF.to_csv('label_fg_present.csv', index=False, header=True)
 
 
