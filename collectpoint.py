@@ -8,6 +8,10 @@ Dependency:
 - pandas
 - numpy
 
+known issues:
+- When inchi label used, it give error due to stripped "InChI="
+  Next fix should consider keeping those strings.
+
 """
 ### Import all required dependencies
 import readjcamp, re
