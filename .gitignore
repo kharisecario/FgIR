@@ -8,4 +8,9 @@ moldataset_df.csv
 moldataset_df.txt
 ver.0/
 XYfeature.csv
-INCHIlabel.csv
+XYfeature_backup.csv
+INCHIlabel.txt
+INCHIlabel_backup.txt
+problematic_structure.txt
+label_fg_present.csv
+label_fg_count.csv

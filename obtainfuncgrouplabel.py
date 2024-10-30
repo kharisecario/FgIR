@@ -42,10 +42,10 @@ with open('fragments_rdkit.txt') as infile:
 n=1
 ### check through all inchi, for each fragments:
 for each_mol in inchi:
-    #print(n)
+    print(n)
     #print(each_mol)
-    if n == 2399:
-        break
+    #if n == 2399:
+        #break
     mol = Chem.MolFromInchi(each_mol)
     for func_group in fragment_list:
         call_func = f'fr_{func_group}'
