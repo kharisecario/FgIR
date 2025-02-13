@@ -21,16 +21,16 @@ from sklearn.metrics import accuracy_score, classification_report
 #   Main program   #
 ####################
 # Import dataset as df
-X = pd.read_csv('XYnorm.csv')
+X = pd.read_csv('XYsnv.csv') #XYnorm XYsnv XYsnvnorm
 dfy = pd.read_csv('label_fg_present.csv')
 fg_y = dfy.columns.tolist()
 Y = dfy[fg_y[1]]
 
 # Split dataset by 1/3 for test
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=34)
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=34, stratify=Y)
 
 # Generate Classifier Model
-rf_model = RandomForestClassifier(n_estimators=100, random_state=34)
+rf_model = RandomForestClassifier(n_estimators=100, max_features='sqrt', random_state=34)
 rf_model.fit(X_train, Y_train)  # train our model
 
 # Make Prediction based on Test
