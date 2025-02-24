@@ -18,3 +18,7 @@ scratch.ipynb
 XYsnv.csv
 XYsnvnorm.csv
 XYnorm.csv
+kmeans_model.pkl
+randfor_cuml.ipynb
+scratch copy.ipynb
+randfor_accuracy_report.csv
