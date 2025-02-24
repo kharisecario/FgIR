@@ -22,3 +22,5 @@ kmeans_model.pkl
 randfor_cuml.ipynb
 scratch copy.ipynb
 randfor_accuracy_report.csv
+scratch_norm.ipynb
+XYsnv_new.csv

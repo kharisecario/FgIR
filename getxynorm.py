@@ -13,7 +13,7 @@ import pandas as pd
 import numpy as np
 
 ### Defining functions used in this file
-#Standard normal variate where mean 0 and std 1
+#Standard normal variate where mean 0 and std 1 (sample is is based on row)
 def snv(row): 
     mean = np.mean(row)
     std_dev = np.std(row)
