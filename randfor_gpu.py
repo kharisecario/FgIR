@@ -14,6 +14,7 @@ Dependency:
 import cuml
 from cuml import RandomForestClassifier
 from cuml.model_selection import train_test_split
+from sklearn.metrics import f1_score
 import pandas as pd
 import time
 
@@ -37,6 +38,7 @@ for i in less_appear_label:
 # Check for every available funct group >>>
 start_time = time.time()
 for fg_name in dfy.columns.to_list():
+    loop_time = time.time()
     Y = dfy[fg_name]
 
     # Split dataset to train-test >>>
@@ -48,15 +50,24 @@ for fg_name in dfy.columns.to_list():
     rf_model.fit(X_train, Y_train)  # train our model
 
     # Making Prediction
+    Y_pred_train = rf_model.predict(X_train)    #to calculate F1_train
     Y_pred = rf_model.predict(X_test)
 
     # Model Accuracy
     cu_accuracy = cuml.metrics.accuracy_score(Y_test, Y_pred)
     print(f"    cuml accuracy for {fg_name} >>> {cu_accuracy:.2f}")
-    print(f"    elapsed test time >>> {time.time()-start_time}")
+
+    # Model F1 Score
+    f1_test = f1_score(Y_test.to_numpy(), Y_pred.to_numpy())
+    print(f"    cuml F1-score for {fg_name} >>> {f1_test:.2f}")
+
+    # F1 Training and accuracy
+    train_accuracy = cuml.metrics.accuracy_score(Y_train, Y_pred_train)
+    f1_train = f1_score(Y_train.to_numpy(), Y_pred_train.to_numpy())
 
     # Record Accuracy in dictionary
-    model_accuracy[fg_name] = [round(cu_accuracy,2)]
+    print(f"    elapsed test time >>> {time.time()-loop_time}")
+    model_accuracy[fg_name] = [round(train_accuracy,2), round(cu_accuracy,2), round(f1_train,2), round(f1_test,2)]
 
 print(f'>>> Elapsed Time for all FG = {time.time()-start_time} s')
 
