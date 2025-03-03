@@ -44,7 +44,7 @@ n=1
 for each_mol in inchi:
     print(n)
     #print(each_mol)
-    #if n == 2399:
+    #if n == 2399:  #remove problematic INCHI
         #break
     mol = Chem.MolFromInchi(each_mol)
     for func_group in fragment_list:
