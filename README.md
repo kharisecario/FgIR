@@ -38,6 +38,8 @@ Here, Standard Normal Variate (SNV) are used. It is found to help IR spectra mor
 
 ## 6. Randomforest
 
+Select label that want to be removed are done here.
+
 *ftirrandomforest*
 Used SKlearn and run in CPU. For default parameters, each molecules run for 1-2 minutes. (Single sample)
 

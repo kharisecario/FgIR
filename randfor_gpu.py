@@ -28,12 +28,19 @@ import time
 X = pd.read_csv('XYsnv.csv') #XYnorm XYsnv XYsnvnorm
 dfy = pd.read_csv('label_fg_present.csv')
 
+# Prepare blank placeholder
 model_accuracy = {}
 
 # Remove fg that has <2 appearance
 less_appear_label = ['alkyl_carbamate','barbitur','benzodiazepine','diazo','dihydropyridine','guanido','lactam','prisulfonamd','quatN','tetrazole']
 for i in less_appear_label:
     del dfy[i]
+# Remove fg that has <3% appeareance
+less_appear_label = ['pyridine', 'C_S', 'amide', 'Ar_COO', 'isothiocyan', 'aldehyde', 'nitro_arom_nonortho', 'sulfide', 'SH', 'Ar_NH', 'Nhpyrrole', 'thiophene', 'term_acetylene', 'Ndealkylation1', 'imidazole', 'furan', 'imide', 'lactone', 'Ndealkylation2', 'hdrzone', 'piperdine', 'isocyan', 'sulfone', 'epoxide', 'sulfonamd', 'thiazole', 'oxime', 'morpholine', 'amidine', 'azo', 'phos_acid', 'phos_ester', 'hdrzine', 'nitroso', 'piperzine', 'thiocyan', 'urea', 'HOCCN', 'priamide', 'N_O', 'oxazole', 'azide']
+for i in less_appear_label:
+    del dfy[i]
+
+
 
 # Check for every available funct group >>>
 start_time = time.time()
