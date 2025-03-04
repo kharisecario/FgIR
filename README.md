@@ -36,7 +36,7 @@ From collected INCHI, it put into RDkit to determine its molecule and functional
 Here, Standard Normal Variate (SNV) are used. It is found to help IR spectra more easily identified. Several other methods are prepared (min-max, min-max+SNV).
 > Output: *XYsnv*, *XYnorm*, and *XYsnvnorm*.
 
-## 6. Randomforest
+## 6a. Randomforest
 
 Select label that want to be removed are done here.
 
@@ -48,3 +48,6 @@ Used CuML (and SKlearn) and run in GPU. For default parameters, each molecules r
 
 *randfor_gpu*
 Used CuML (and SKlearn) and run in GPU. Each molecules run for 1-2 times. It loops all the sample.
+
+## 6b. Randomforest GridsearchCV
+
