@@ -11,18 +11,13 @@ Dependency:
 
 """
 ### Import all required dependencies
-#import cudf as pd
 import cuml
 from cuml import RandomForestClassifier
 from cuml.model_selection import train_test_split, GridSearchCV
-#from sklearn.model_selection import train_test_split
 import pandas as pd
-#from sklearn.model_selection import GridSearchCV
-#from sklearn import set_config
 import time
 
 ### Defining functions used in this file
-#set_config(print_changed_only=False)
 
 ####################
 #   Main program   #
@@ -51,9 +46,7 @@ best_params = rf_model.best_params_
 best_score = rf_model.best_score_
 print(f"Best Parameters: {best_params}")
 print(f"Best Score: {best_score}")
-#print(rf_model.best_estimator_)
-#print(rf_model.best_estimator_.get_params())
-
+#print(rf_model.cv_results_)
 
 print (f"Elapsed time {time.time()-start_time}")
 
