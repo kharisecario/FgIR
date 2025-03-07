@@ -22,6 +22,10 @@ import cupy as cp
 from numpy import mean
 import time
 
+# Supress user warning >>> UserWarning: To use pickling first train using float32 data to fit the estimator ret = func(*args, **kwargs)
+import warnings
+warnings.filterwarnings("ignore")
+
 ### Defining functions used in this file
 # Create a dictionary of all permutation of hyperparameters
 import itertools
@@ -54,7 +58,7 @@ X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_
 start_time = time.time()
 param_grid = {'max_depth':[5,10,15],
               'max_features':['log2','sqrt'],
-              'max_leaf_nodes':[None,2,3,4,5],
+              #'max_leaf_nodes':[None,2,3,4,5],     # not supported in cuML
               }
 
 ###########################################
@@ -79,6 +83,7 @@ cupy_y_array = cp.asarray(numpy_array)
 
 
 for combo in combinations:
+    #print(tuple(combo.values()))
     # Generate Cross Validation fold:
     f1_drop_temp = []
     for train_index, test_index in skf.split(X_train, Y_train):     # can only use normal dataframe
@@ -99,7 +104,7 @@ for combo in combinations:
         # F1 Score
         f1_test = f1_score(YCV_test.get(), cv_test_pred.get())     #already ndarray, but need use get as it is in gpu
         print(f1_test)
-        f1_train = f1_score(YCV_train.to_numpy(), cv_train_pred.to_numpy())
+        f1_train = f1_score(YCV_train.get(), cv_train_pred.get())
         #f1_test = f1_score(YCV_test.to_numpy(), cv_test_pred.to_numpy())
         #f1_train = f1_score(YCV_train.to_numpy(), cv_train_pred.to_numpy())
         f1_drop = abs(f1_train - f1_test)
@@ -108,7 +113,7 @@ for combo in combinations:
         f1_drop_temp.append(f1_drop)
 
     # make a record
-    f1_record[combo] = f1_drop_temp
+    f1_record[tuple(combo.values())] = f1_drop_temp
 
     if mean(f1_drop_temp) < f1_drop_best:
         f1_drop_best = mean(f1_drop_temp)
@@ -119,9 +124,22 @@ print(f"Best F1_drop: {f1_drop_best}")
 
 
 
+# Test best hyperparameter
+rf_model = RandomForestClassifier(**best_hyperparameter)
+rf_model.fit(X_train, Y_train)
 
+Y_pred = rf_model.predict(X_test)
+Y_pred_train = rf_model.predict(X_train)
+cu_accuracy = accuracy_score(Y_test, Y_pred)
+#cv_train_accuracy = accuracy_score(Y_train, Y_pred_train)
 
+# F1 Score
+f1_test = f1_score(Y_test.to_numpy(), Y_pred.to_numpy())     #already ndarray, but need use get as it is in gpu
+f1_train = f1_score(Y_train.to_numpy(), Y_pred_train.to_numpy())
+f1_drop = abs(f1_train - f1_test)
 
+print(f"RF Accuracy: {cu_accuracy}")
+print(f"F1_drop Test Result: {f1_drop}")
 
 
 ####################################################
