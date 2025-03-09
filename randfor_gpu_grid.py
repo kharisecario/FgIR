@@ -26,8 +26,8 @@ from numpy import mean
 import time
 
 # Supress user warning >>> UserWarning: To use pickling first train using float32 data to fit the estimator ret = func(*args, **kwargs)
-#import warnings
-#warnings.filterwarnings("ignore")
+import warnings
+warnings.filterwarnings("ignore")
 
 ### Defining functions used in this file
 # Create a dictionary of all permutation of hyperparameters
