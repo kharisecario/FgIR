@@ -48,3 +48,12 @@ print( " cuml accuracy: ", cu_accuracy )
 import pickle
 pickle.dump(rf_model, open("kmeans_model.pkl", "wb"))
 '''
+
+
+# CALCULATE the importance
+importance = rf_model.feature_importances_
+col_feature = X.columns
+i=0
+while i < len(col_feature):
+    print(f"The importance of feature '{col_feature[i]}' is {round(importances[i]*100, 2)}%.")
+    i += 1
