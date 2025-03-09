@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 """
+Updated on Fri Mar 07 2025 10:30
 Created on Thr Feb 24 2025 11:02:13 
 @author: khari
 
 This script is for running single label random forest using cuml
+gridsearchCV done using kfold with F1-score drop
 
 Dependency:
 - cuml from Rapids
