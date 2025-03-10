@@ -49,7 +49,7 @@ import pickle
 pickle.dump(rf_model, open("kmeans_model.pkl", "wb"))
 '''
 
-
+'''
 # CALCULATE the importance
 importance = rf_model.feature_importances_
 col_feature = X.columns
@@ -57,3 +57,24 @@ i=0
 while i < len(col_feature):
     print(f"The importance of feature '{col_feature[i]}' is {round(importances[i]*100, 2)}%.")
     i += 1
+'''
+
+from sklearn.ensemble import RandomForestClassifier as sk_rf
+from sklearn.metrics import accuracy_score, classification_report
+
+sk_model = sk_rf(n_estimators=100, max_features='sqrt', random_state=34)
+sk_model.fit(X_train.to_numpy(), Y_train.to_numpy())  # train our model
+
+sk_predict = sk_model.predict(X_test.to_numpy())
+sk_accuracy = accuracy_score(Y_test.to_numpy(), sk_predict)
+print( " skml accuracy: ", sk_accuracy )
+
+'''
+importances = sk_model.feature_importances_
+col_feature = X.columns
+i = 0
+
+while i < len(col_feature):
+    print(f"The importance of feature '{col_feature[i]}' is {round(importances[i]*100, 2)}%.")
+    i += 1
+'''
