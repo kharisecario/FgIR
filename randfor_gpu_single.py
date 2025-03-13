@@ -11,12 +11,19 @@ Dependency:
 
 """
 ### Import all required dependencies
-import cuml
+import cuml, os
 from cuml import RandomForestClassifier
 from cuml.model_selection import train_test_split
 import pandas as pd
+import cupy as cp
+from sklearn.metrics import confusion_matrix, classification_report
 
 ### Defining functions used in this file
+out_dir = ['confusion_matrix', 'classification_report']
+for directory in out_dir:
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
 
 
 ####################
@@ -113,3 +120,30 @@ importances = result.importances_mean
 for i, importance in enumerate(importances):
     print(f"Feature {i}: Importance {importance}")
 '''
+
+
+# Evaluate Confusion matrix
+#y_test_cp = cp.array(Y_test._to_array())
+#y_pred_cp = cp.array(Y_pred._to_array())
+
+#cm = confusion_matrix(y_test_cp.get(), y_pred_cp.get())
+cm = confusion_matrix(Y_test.to_numpy(), Y_pred.to_numpy())
+print(cm)
+cm_df = pd.DataFrame(cm, index=[0,1], columns=[0,1])
+cm_df.to_csv(f'confusion_matrix/cm_{fg_name[1]}.csv', index=True)
+
+#cr = classification_report(Y_test.to_numpy(), Y_pred.to_numpy())
+cr = classification_report(Y_test.to_numpy(), Y_pred.to_numpy(), output_dict=True)
+print(cr)
+cr_df = pd.DataFrame(cr).transpose()
+cr_df.to_csv(f'classification_report/cr_{fg_name[1]}.csv', index=True)
+
+
+
+
+# To close the model so that there is no attribute error
+rf_model = None 
+
+####################
+#   End program    #
+####################
