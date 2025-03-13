@@ -30,7 +30,13 @@ Y = dfy[fg_name[1]]    #only 1 label for test
 
 # Split the dataset into train test
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=34, stratify=Y)
-
+'''
+# To compensate pickle: (not working)
+X_train = X_train.to_numpy()
+Y_train = Y_train.to_numpy()
+X_test = X_test.to_numpy()
+Y_test = Y_test.to_numpy()
+'''
 
 # Create Random forest model
 rf_model = RandomForestClassifier(n_estimators=100, max_features='sqrt', random_state=34)     #, n_streams=1
@@ -45,10 +51,11 @@ cu_accuracy = cuml.metrics.accuracy_score(Y_test, Y_pred)
 print( " cuml accuracy: ", cu_accuracy )
 
 # To save the model
-'''
-import pickle
-pickle.dump(rf_model, open("kmeans_model.pkl", "wb"))
-'''
+
+import joblib
+joblib.dump(rf_model, "kmeans_model.pkl")
+rf_model = None # To close the model so that there is no attribute error
+
 
 '''
 # CALCULATE the importance
