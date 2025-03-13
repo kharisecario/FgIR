@@ -44,18 +44,27 @@ rf_model.fit(X_train, Y_train)  # train our model
 
 # Prediction based on the test set
 Y_pred = rf_model.predict(X_test)
-Y_pred
+#Y_pred
+#importance = rf_model.feature_importances_
+
 
 # Model Accuracy
 cu_accuracy = cuml.metrics.accuracy_score(Y_test, Y_pred)
 print( " cuml accuracy: ", cu_accuracy )
 
+'''
 # To save the model
-
 import joblib
 joblib.dump(rf_model, "kmeans_model.pkl")
 rf_model = None # To close the model so that there is no attribute error
+'''
 
+'''
+# Load the model from the file
+loaded_rf = joblib.load('random_forest_model.pkl')
+# Verify the loaded model
+predictions = loaded_rf.predict(X)
+'''
 
 '''
 # CALCULATE the importance
@@ -95,8 +104,8 @@ while i < len(col_feature):
 '''
 from sklearn.inspection import permutation_importance
 #### Data from df need to be converted to numpy array before training & fitting
-X_train = X_train.to_numpy()
-Y_train = Y_train.to_numpy()
+#X_train = X_train.to_numpy()
+#Y_train = Y_train.to_numpy()
 result = permutation_importance(rf_model, X_train, Y_train, scoring='accuracy') #    values.reshape(-1,).tolist()
 
 # Display feature importances

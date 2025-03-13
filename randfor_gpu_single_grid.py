@@ -95,7 +95,7 @@ for combo in combinations:
         #XCV_train, XCV_test = X_train[train_index], X_train[test_index]     # index here need use cupy array
         #YCV_train, YCV_test = Y_train[train_index], Y_train[test_index]
 
-        rf_model = RandomForestClassifier(**combo)
+        rf_model = RandomForestClassifier(**combo, random_state=34, n_streams=1)
         rf_model.fit(XCV_train, YCV_train)
 
         cv_test_pred = rf_model.predict(XCV_test)
@@ -127,7 +127,7 @@ print(f"Best F1_drop: {f1_drop_best}")
 
 
 # Test best hyperparameter
-rf_model = RandomForestClassifier(**best_hyperparameter)
+rf_model = RandomForestClassifier(**best_hyperparameter, random_state=34, n_streams=1)
 rf_model.fit(X_train, Y_train)
 
 Y_pred = rf_model.predict(X_test)

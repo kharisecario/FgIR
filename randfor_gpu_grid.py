@@ -103,7 +103,7 @@ for fg_name in dfy.columns.to_list():
             XCV_train, XCV_test = cupy_x_array[train_index], cupy_x_array[test_index]     # index here need use cupy array
             YCV_train, YCV_test = cupy_y_array[train_index], cupy_y_array[test_index]
 
-            rf_model = RandomForestClassifier(**combo)
+            rf_model = RandomForestClassifier(**combo, random_state=34, n_streams=1)
             rf_model.fit(XCV_train, YCV_train)
 
             cv_test_pred = rf_model.predict(XCV_test)
@@ -133,7 +133,7 @@ for fg_name in dfy.columns.to_list():
     # EVALUATE BEST HYPERPARAMETER: >>>
     print(f">>> Testing the model...")
     # Test best hyperparameter
-    rf_model = RandomForestClassifier(**best_hyperparameter)
+    rf_model = RandomForestClassifier(**best_hyperparameter, random_state=34, n_streams=1)
     rf_model.fit(X_train, Y_train)
 
     # Accuracy
@@ -150,7 +150,7 @@ for fg_name in dfy.columns.to_list():
     print(f">>> F1_drop Test Result: {f1_drop:.2f}")
     
     print(f"    elapsed test time >>> {time.time()-loop_time}")
-    model_performance[fg_name] = [round(cu_accuracy,2), round(f1_drop,2)]
+    model_performance[fg_name] = [best_hyperparameter, round(cu_accuracy,2), round(f1_drop,2)]
 
 
 print(f'>>> Elapsed Time for all FG = {time.time()-start_time} s')
