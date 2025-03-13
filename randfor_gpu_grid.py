@@ -15,15 +15,14 @@ Dependency:
 
 """
 ### Import all required dependencies
-import cuml
+import os, time, joblib
 from cuml import RandomForestClassifier
 from cuml.model_selection import train_test_split, StratifiedKFold
 from cuml.metrics import accuracy_score
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, confusion_matrix, classification_report
 import pandas as pd
 import cupy as cp
 from numpy import mean
-import time
 
 # Supress user warning >>> UserWarning: To use pickling first train using float32 data to fit the estimator ret = func(*args, **kwargs)
 import warnings
@@ -43,6 +42,11 @@ def combine_dict_values(input_dict):
     
     return result
 
+# Create directory for output
+out_dir = ['pickled_model', 'confusion_matrix', 'classification_report']
+for directory in out_dir:
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 
 ####################
@@ -148,9 +152,20 @@ for fg_name in dfy.columns.to_list():
 
     print(f">>> RF Accuracy: {cu_accuracy:.2f}")
     print(f">>> F1_drop Test Result: {f1_drop:.2f}")
-    
     print(f"    elapsed test time >>> {time.time()-loop_time}")
     model_performance[fg_name] = [best_hyperparameter, round(cu_accuracy,2), round(f1_drop,2)]
+
+    # Dumping all important information into file
+
+    cm = confusion_matrix(Y_test.to_numpy(), Y_pred.to_numpy())
+    cm_df = pd.DataFrame(cm, index=[0,1], columns=[0,1])
+    cm_df.to_csv(f'confusion_matrix/cm_{fg_name}.csv', index=True)
+
+    cr = classification_report(Y_test.to_numpy(), Y_pred.to_numpy(), output_dict=True)
+    cr_df = pd.DataFrame(cr).transpose()
+    cr_df.to_csv(f'classification_report/cr_{fg_name}.csv', index=True)
+
+    joblib.dump(rf_model, f'pickled_model/cuml_{fg_name}.pkl')
 
 
 print(f'>>> Elapsed Time for all FG = {time.time()-start_time} s')
@@ -160,3 +175,12 @@ model_performance_df = pd.DataFrame.from_dict(model_performance)
 model_performance_df.to_csv('randfor_performance_report.csv', index=False, header=True)
 
 
+
+
+
+
+# To close the model so that there is no attribute error
+rf_model = None 
+####################
+#   End program    #
+####################
