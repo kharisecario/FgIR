@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
+Updated on Mon Mar 24 2025
 Created on Thr Mar 13 2025 17:05 
 @author: khari secario
 
+Updated 3/24: Added OOB error.
 This script is for obtaining feature importance (sklearn) 
 based on the best parameter obtain through CUML previously.
 
@@ -18,7 +20,7 @@ Dependency:
 from sklearn.ensemble import RandomForestClassifier as sk_rf
 from cuml.model_selection import train_test_split
 import pandas as pd
-import time
+import time, ast
 
 
 ### Defining functions used in this file
@@ -29,10 +31,12 @@ import time
 ####################
 # Prepare blank placeholder
 importance_value = {}
+OOB_error = {}
 
 # import dataset
 X = pd.read_csv('XYsnv.csv') #XYnorm XYsnv XYsnvnorm
 dfy = pd.read_csv('label_fg_present.csv')
+best_hyperparam = pd.read_csv('randfor_performance.csv')
 
 # Remove fg that has <2 appearance
 less_appear_label = ['alkyl_carbamate','barbitur','benzodiazepine','diazo','dihydropyridine','guanido','lactam','prisulfonamd','quatN','tetrazole']
@@ -53,17 +57,30 @@ for fg_name in dfy.columns.to_list():
     # Split dataset to train-test >>>
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=34, stratify=Y)
 
-    rf_model = sk_rf(n_estimators=100, max_features='sqrt', random_state=34)
+    param = ast.literal_eval(best_hyperparam[fg_name][0])
+    rf_model = sk_rf(**param, oob_score=True, random_state=34)
+    #rf_model = sk_rf(n_estimators=100, max_features='sqrt', random_state=34)
     rf_model.fit(X_train.to_numpy(), Y_train.to_numpy())  # train our model
     
     print(f"    elapsed test time >>> {time.time()-loop_time}")
 
     importances = rf_model.feature_importances_
     importance_value[fg_name] = importances
+
+    # Obtain the OOB error 
+    oob_error = 1 - rf_model.oob_score_ 
+    OOB_error[fg_name] = oob_error
+    
+    # Print the OOB error 
+    #print(f'OOB error: {oob_error:.3f}') 
+
     
     
 cm_df = pd.DataFrame.from_dict(importance_value).set_index(X.columns)
 cm_df.to_csv('feature_importance.csv', index=True, header=True)
 
+best_hyperparam = pd.concat([best_hyperparam, pd.DataFrame(OOB_error, index=[3])], ignore_index=True)
+best_hyperparam.index = ['best_hyperparam', 'Accuracy', 'F1_drop', 'OOB_error']
+best_hyperparam.to_csv('randfor_performance_report.csv', index=True, header=True)
 
 print(f'>>> Elapsed Time for all FG = {round((time.time()-start_time)/60, 2)} min')

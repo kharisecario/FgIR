@@ -85,6 +85,7 @@ cupy_y_array = cp.asarray(numpy_array)
 
 
 for combo in combinations:
+    print(combo)
     #print(tuple(combo.values()))
     # Generate Cross Validation fold:
     f1_drop_temp = []

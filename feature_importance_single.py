@@ -42,11 +42,12 @@ X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_
 
 start_time = time.time()
 
-rf_model = sk_rf(n_estimators=100, max_features='sqrt', random_state=34)
+rf_model = sk_rf(oob_score=True, n_estimators=100, max_features='sqrt', random_state=34)
 rf_model.fit(X_train.to_numpy(), Y_train.to_numpy())  # train our model
 
 print(f"    elapsed test time >>> {time.time()-start_time}")
 
+'''
 importances = rf_model.feature_importances_
 col_feature = X.columns
 i = 0
@@ -56,8 +57,15 @@ cm_df = pd.DataFrame.from_dict(importance_value).set_index(X.columns)
 #cm_df = cm_df.set_index(X.columns)
 cm_df.to_csv('feature_importance.csv', index=True, header=True)
 
-
 print(cm_df)
+'''
+
+# Obtain the OOB error 
+oob_error = 1 - rf_model.oob_score_ 
+  
+# Print the OOB error 
+print(f'OOB error: {oob_error:.3f}') 
+
 '''
 while i < len(col_feature):
     print(f"The importance of feature '{col_feature[i]}' is {round(importances[i]*100, 2)}%.")

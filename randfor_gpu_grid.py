@@ -172,7 +172,7 @@ print(f'>>> Elapsed Time for all FG = {time.time()-start_time} s')
 
 # Finish Loop, save results
 model_performance_df = pd.DataFrame.from_dict(model_performance)
-model_performance_df.to_csv('randfor_performance_report.csv', index=False, header=True)
+model_performance_df.to_csv('randfor_performance.csv', index=False, header=True)
 
 
 
