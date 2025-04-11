@@ -34,6 +34,7 @@ From collected INCHI, it put into RDkit to determine its molecule and functional
 
 *getxynorm*
 Here, Standard Normal Variate (SNV) are used. It is found to help IR spectra more easily identified. Several other methods are prepared (min-max, min-max+SNV).
+> Input: XYfeature.csv
 > Output: *XYsnv*, *XYnorm*, and *XYsnvnorm*.
 
 ## 6a. Randomforest

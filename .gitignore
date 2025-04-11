@@ -5,6 +5,7 @@ ver.0/
 classification_report/
 confusion_matrix/
 pickled_model/
+GTCS/
 test.ipynb
 test.txt
 log_scraping.txt
