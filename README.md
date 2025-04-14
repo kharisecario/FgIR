@@ -69,3 +69,7 @@ Output:
 Use the best parameter obtained previously for search feature importance and OOB error.
 
 
+## 8. Predict with saved model
+
+*rfpredict.py*
+Use pickled model to make prediction of functional group from the FTIR spectrum
