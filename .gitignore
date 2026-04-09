@@ -1,4 +1,3 @@
-gsml.code-workspace
 archive/
 jdx_files/
 ver.0/
@@ -9,15 +8,15 @@ GTCS/
 test.ipynb
 test.txt
 log_scraping.txt
-moldataset_df.csv
-moldataset_df.txt
-XYfeature.csv
-XYfeature_backup.csv
 INCHIlabel.txt
 INCHIlabel_backup.txt
 problematic_structure.txt
 label_fg_present.csv
 label_fg_count.csv
+moldataset_df.csv
+moldataset_df.txt
+XYfeature.csv
+XYfeature_backup.csv
 scratch.ipynb
 XYsnv.csv
 XYsnvnorm.csv

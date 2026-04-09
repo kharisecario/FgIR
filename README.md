@@ -1,4 +1,20 @@
-# gsml
+# FgIR
+FgIR is ML model for functional group present from the IR spectra.
+
+## Prerequisite:
+- [nistchempy](https://pypi.org/project/nistchempy/)
+- [rdkit](https://www.rdkit.org/docs/Install.html)
+
+## Output:
+- **jdx_files/** to store all NIST scrapped data.
+    - **IR_spec_all** 
+    - **absorbance** only for IR absorbance spectra.
+- **moldataset.csv** is all extracted information of NIST molecule,
+- **XYfeature.csv** is for input feature data (intensity for each point of wavenumbers)
+- **INCHILabel.txt** storing molecule information in form of INCHI code.
+- **label_fg_count.csv** and **label_fg_present.csv** is the label information, based on the number of appearance or simply present (1 or 0).
+- **XYnorm.csv** and/or **XYsnv.csv** for any desired normalization. (rec: SNV)
+
 
 The program workflow are as follow:
 
@@ -12,22 +28,23 @@ All the molecules that are in gas phase and has IR spectra are obtained.
 
 *collectabs*
 From all collected IR spectra, it further selected to be the only one with absorption spectra.
-> Output: Directory with all copied JDX file for absorbance IR. Filename is in INCHI.
+> Output: Directory with all copied JDX file for absorbance IR. ~~Filename is in INCHI.~~
 
 ## 3. Read needed information from the JCamp file and interpolate data
 
-*readjcamp* (run automatically with *collectpoint*)
-Information such as wavelength, intensity, molecule name, CAS number, INCHI, etc.
-> Output: *moldataset.csv* for all the list extracted information.
+    *readjcamp* (run automatically with *collectpoint*)
+    Information such as wavelength, intensity, molecule name, CAS number, INCHI, etc.
+    > Output: *moldataset.csv* for all the list extracted information.
 
 *collectpoint*
 All the intensity vs wavelength data are collected. Wavelength is interpolated by cubic spline interpolation to have uniform number of data and range.
+Range of interpolation can be changed here.
 > Output: *XYfeature.csv* and *INCHIlabel.txt* 
 
 ## 4. Identify functional group presence with RDkit
 
 *obtainfuncgrouplabel*
-From collected INCHI, it put into RDkit to determine its molecule and functional groups that are in the molecules. It collected both as presence and count (how many it have certain functional groups)
+From collected INCHI, it put into RDkit to determine its molecule and functional groups that are in the molecules. It collected both as presence and count (how much certain functional groups appear under same molecule)
 > Output: *label_fg_count.csv* and *label_fb_presense.csv*
 
 ## 5. Normalize the XYfeature

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thr Sep 24 2024 10:29:05 
+Updated on Thr Apr 09 2026
 @author: khari
 
 Dependency:
@@ -9,7 +10,7 @@ Dependency:
 - numpy
 
 known issue:
-- This version use stripped inchi. so "InChI=" are added again. Next version should ignore adding that strings.
+- This version use stripped inchi as an input. so "InChI=" are added again. Next version should ignore adding that strings (probably won't do it anyway).
 
 """
 ### Import all required dependencies
@@ -42,11 +43,11 @@ with open('fragments_rdkit.txt') as infile:
 n=1
 ### check through all inchi, for each fragments:
 for each_mol in inchi:
-    print(n)
+    print(f"Current molecule: {n}", end='\r', flush=True)
     #print(each_mol)
     #if n == 2399:  #remove problematic INCHI
         #break
-    mol = Chem.MolFromInchi(each_mol)
+    mol = Chem.MolFromInchi(each_mol, sanitize=False)   #sanitize false to avoid error when inchi have problem.
     for func_group in fragment_list:
         call_func = f'fr_{func_group}'
         obtain_func_group = getattr(rdkit.Chem.Fragments, call_func)

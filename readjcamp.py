@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thr Sep 06 14:49:05 2024
+Updated on Thr Apr 09 2026
 @author: khari
-The third file in collecting jdx IR data.
-This file work by collecting information in a df and file.
+
 
 Dependency:
 - pandas
@@ -81,6 +81,9 @@ for filename in os.listdir(directory):
                             singlemol_info[matching_string] = re.sub(r'^.*?=', '', line.strip()) #remove all chars up to = sign to obtain the value
                         elif 'XYDATA' in line:
                             singlemol_info['YDATA'] = extract_ydata(line, infile)
+                #print(type(singlemol_info['YFACTOR']))
+                #break
+                singlemol_info['YDATA'] = list(map(lambda x: x * float(singlemol_info['YFACTOR']), singlemol_info['YDATA']))    # Multiply YDATA with YFACTOR
                 XYdata_type(singlemol_info)
                 singlemol_info['XDATA'] = collect_xdata(singlemol_info)
             infile.close()
