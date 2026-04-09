@@ -32,3 +32,4 @@ randfor_performance_report.csv
 feature_importance.csv
 feature_importance_snv.csv
 randfor_performance.csv
+gsmlenv.yml

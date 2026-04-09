@@ -37,7 +37,7 @@ Here, Standard Normal Variate (SNV) are used. It is found to help IR spectra mor
 > Input: XYfeature.csv
 > Output: *XYsnv*, *XYnorm*, and *XYsnvnorm*.
 
-## 6a. Randomforest
+## 6a. Randomforest (deprecated)
 
 Select label that want to be removed are done here.
 
