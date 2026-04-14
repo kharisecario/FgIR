@@ -18,8 +18,8 @@ Dependency:
 import os, time, joblib
 from cuml import RandomForestClassifier
 from cuml.model_selection import train_test_split, StratifiedKFold
-from cuml.metrics import accuracy_score
-from sklearn.metrics import f1_score, confusion_matrix, classification_report
+from cuml.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import f1_score, classification_report
 import pandas as pd
 import cupy as cp
 from numpy import mean

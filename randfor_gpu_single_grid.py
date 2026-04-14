@@ -16,8 +16,8 @@ Dependency:
 import cuml
 from cuml import RandomForestClassifier
 from cuml.model_selection import train_test_split, GridSearchCV, StratifiedKFold
-from cuml.metrics import accuracy_score
-from sklearn.metrics import f1_score
+from cuml.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import f1_score, classification_report
 import pandas as pd
 #import cudf as pd
 import cupy as cp
@@ -128,8 +128,15 @@ print(f"Best F1_drop: {f1_drop_best}")
 
 
 # Test best hyperparameter
-rf_model = RandomForestClassifier(**best_hyperparameter, random_state=34, n_streams=1)
+rf_model = RandomForestClassifier(**best_hyperparameter, random_state=34, n_streams=1, oob_score=True)
 rf_model.fit(X_train, Y_train)
+print(f"OOB_score: {rf_model.oob_score_}")
+print(f">>> printing feature importances...")
+#rf_model.feature_importances_.to_csv('trial_feature_importances.csv', index=True)      #its numpy not pandas.
+pd.DataFrame({
+    'feature': X_train.columns,
+    'importance': rf_model.feature_importances_
+}).to_csv('trial_feature_importances.csv', index=False)
 
 Y_pred = rf_model.predict(X_test)
 Y_pred_train = rf_model.predict(X_train)
@@ -147,36 +154,12 @@ print(f"F1_drop Test Result: {f1_drop}")
 
 ####################################################
 
-'''
-rf_model = GridSearchCV(RandomForestClassifier(), param_grid)
-#rf_model.fit(X_train, Y_train)  # train our model, get() used to construct numpy array explicitly
-rf_model.fit(X_train.to_numpy(), Y_train.to_numpy())
+cm = confusion_matrix(Y_test.to_numpy(), Y_pred.to_numpy())
+cm_df = pd.DataFrame(cm.get(), index=[0,1], columns=[0,1])
+print(f"Confusion Matrix: {cm}")
+#cm_df.to_csv(f'confusion_matrix/cm_{fg_name}.csv', index=True)
 
-# Get the best parameters and best score
-best_params = rf_model.best_params_
-best_score = rf_model.best_score_
-print(f"Best Parameters: {best_params}")
-print(f"Best Score: {best_score}")
-#print(rf_model.cv_results_)
-
-print (f"Elapsed time {time.time()-start_time}")
-'''
-
-
-'''
-# Prediction based on the test set
-Y_pred = rf_model.predict(X_test)
-Y_pred
-
-# Model Accuracy
-cu_accuracy = accuracy_score(Y_test, Y_pred)
-print( " cuml accuracy: ", cu_accuracy )
-'''
-
-
-
-# To save the model
-'''
-import pickle
-pickle.dump(rf_model, open("kmeans_model.pkl", "wb"))
-'''
+cr = classification_report(Y_test.to_numpy(), Y_pred.to_numpy(), output_dict=True)
+cr_df = pd.DataFrame(cr).transpose()
+print(f"Classification Report: {cr_df}")
+#cr_df.to_csv(f'classification_report/cr_{fg_name}.csv', index=True)
