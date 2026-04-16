@@ -19,10 +19,10 @@ import os, time, joblib
 from cuml import RandomForestClassifier
 from cuml.model_selection import train_test_split, StratifiedKFold
 from cuml.metrics import accuracy_score, confusion_matrix
-from sklearn.metrics import f1_score, classification_report
+from sklearn.metrics import f1_score, classification_report, roc_auc_score
 import pandas as pd
 import cupy as cp
-from numpy import mean
+from numpy import mean, std
 
 # Supress user warning >>> UserWarning: To use pickling first train using float32 data to fit the estimator ret = func(*args, **kwargs)
 import warnings
@@ -91,7 +91,7 @@ for fg_name in dfy.columns.to_list():
     f1_record = {}
     combinations = combine_dict_values(param_grid)
     skf = StratifiedKFold(n_splits=3, random_state=34)
-    f1_drop_best = 1
+    cv_f1_drop_best = 1
 
     # Change the training df to numpy then cupy as required for it to work
     numpy_array = X_train.to_numpy()
@@ -101,8 +101,9 @@ for fg_name in dfy.columns.to_list():
 
     # GRIDSEARCH CROSS-VALIDATION for all combinations:
     for combo in combinations:
-
-        f1_drop_temp = []
+        cv_f1_drop_temp = []
+        cv_f1_test_temp = []
+        
         for train_index, test_index in skf.split(X_train, Y_train):     # can only use normal dataframe
             XCV_train, XCV_test = cupy_x_array[train_index], cupy_x_array[test_index]     # index here need use cupy array
             YCV_train, YCV_test = cupy_y_array[train_index], cupy_y_array[test_index]
@@ -116,28 +117,32 @@ for fg_name in dfy.columns.to_list():
             cv_train_accuracy = accuracy_score(YCV_train, cv_train_pred)
 
             # F1 Score
-            f1_test = f1_score(YCV_test.get(), cv_test_pred.get())     #already ndarray, but need use get as it is in gpu
-            f1_train = f1_score(YCV_train.get(), cv_train_pred.get())
-            f1_drop = abs(f1_train - f1_test)
+            cv_f1_test = f1_score(YCV_test.get(), cv_test_pred.get())     #already ndarray, but need use get as it is in gpu
+            cv_f1_train = f1_score(YCV_train.get(), cv_train_pred.get())
+            cv_f1_drop = abs(cv_f1_train - cv_f1_test)
             
             #collect data
-            f1_drop_temp.append(f1_drop)
+            cv_f1_drop_temp.append(cv_f1_drop)
+            cv_f1_test_temp.append(cv_f1_test)
 
         # make a record
-        f1_record[tuple(combo.values())] = f1_drop_temp
+        f1_record[tuple(combo.values())] = cv_f1_drop_temp
 
-        if mean(f1_drop_temp) < f1_drop_best:
-            f1_drop_best = mean(f1_drop_temp)
+        if mean(cv_f1_drop_temp) < cv_f1_drop_best:
+            cv_f1_drop_best = mean(cv_f1_drop_temp)
+            cv_f1_drop_std = std(cv_f1_drop_temp)
             best_hyperparameter = combo
+            cv_f1_test_best = mean(cv_f1_test_temp)
+            cv_f1_test_std = std(cv_f1_test_temp)
 
     print(f">>> Best Parameters: {best_hyperparameter}")
-    print(f">>> Best CV F1_drop: {f1_drop_best:.2f}")
+    print(f">>> Best CV F1_drop: {cv_f1_drop_best:.2f}")
     
 
     # EVALUATE BEST HYPERPARAMETER: >>>
     print(f">>> Testing the model...")
     # Test best hyperparameter
-    rf_model = RandomForestClassifier(**best_hyperparameter, random_state=34, n_streams=1)
+    rf_model = RandomForestClassifier(**best_hyperparameter, random_state=34, n_streams=1, oob_score=True)
     rf_model.fit(X_train, Y_train)
 
     # Accuracy
@@ -153,7 +158,7 @@ for fg_name in dfy.columns.to_list():
     print(f">>> RF Accuracy: {cu_accuracy:.2f}")
     print(f">>> F1_drop Test Result: {f1_drop:.2f}")
     print(f"    elapsed test time >>> {time.time()-loop_time}")
-    model_performance[fg_name] = [best_hyperparameter, round(cu_accuracy,2), round(f1_drop,2)]
+    model_performance[fg_name] = [best_hyperparameter, round(cu_accuracy,2), round(f1_test,2), round(f1_drop,2), round(rf_model.oob_score_,2), round(cv_f1_test_best,2), round(cv_f1_test_std,2), round(cv_f1_drop_best,2), round(cv_f1_drop_std,2)]
 
     # Dumping all important information into file
 
@@ -172,7 +177,8 @@ print(f'>>> Elapsed Time for all FG = {time.time()-start_time} s')
 
 # Finish Loop, save results
 model_performance_df = pd.DataFrame.from_dict(model_performance)
-model_performance_df.to_csv('randfor_performance.csv', index=False, header=True)
+model_performance_df.index = ['Best Hyperparameter', 'Model Accuracy', 'Model F1_test', 'Model F1_drop', 'Model OOB_Score', 'CV F1_Score (avg)', 'CV F1_score (std)', 'CV F1_drop (avg)', 'CV F1_drop (std)']
+model_performance_df.to_csv('randfor_performance.csv', index=True, header=True)
 
 
 
