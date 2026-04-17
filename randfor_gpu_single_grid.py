@@ -16,13 +16,13 @@ Dependency:
 import cuml
 from cuml import RandomForestClassifier
 from cuml.model_selection import train_test_split, GridSearchCV, StratifiedKFold
-from cuml.metrics import accuracy_score, confusion_matrix, roc_auc_score
-from sklearn.metrics import classification_report, f1_score
+from cuml.metrics import accuracy_score, confusion_matrix, roc_auc_score, precision_recall_curve
+from sklearn.metrics import classification_report, f1_score, average_precision_score
 from sklearn.metrics import roc_auc_score as sklearn_roc
 import pandas as pd
 #import cudf as pd
 import cupy as cp
-from numpy import mean, std
+from numpy import mean, std, trapezoid
 import time
 
 # Supress user warning >>> UserWarning: To use pickling first train using float32 data to fit the estimator ret = func(*args, **kwargs)
@@ -68,12 +68,13 @@ param_grid = {'max_depth':[5,10],
 
 # Hyperparameters tuning
 best_hyperparameter = []
-#CV_record = {}
 f1_record = {}
+cv_record = {}
 combinations = combine_dict_values(param_grid)
 skf = StratifiedKFold(n_splits=3, random_state=34)
 f1_drop_best = 1
 f1_test_best = 0
+cv_pr_auc_best = 0
 
 #'''
 # Change the training df to numpy
@@ -92,6 +93,8 @@ for combo in combinations:
     # Generate Cross Validation fold:
     f1_drop_temp = []
     f1_cvtest_temp = []
+    cv_pr_auc_temp = []
+
     for train_index, test_index in skf.split(X_train, Y_train):     # can only use normal dataframe
         #print(cupy_array[train_index])
         XCV_train, XCV_test = cupy_x_array[train_index], cupy_x_array[test_index]     # index here need use cupy array
@@ -115,6 +118,11 @@ for combo in combinations:
         #f1_train = f1_score(YCV_train.to_numpy(), cv_train_pred.to_numpy())
         f1_drop = abs(f1_train - f1_test)
 
+        #PR-AUC
+        ycv_score = rf_model.predict_proba(XCV_test)
+        cv_pr_auc = average_precision_score(YCV_test.get(), ycv_score[:,1].get())
+        print(f"PR-AUC: {cv_pr_auc:.4f}")
+
         '''
         cvy_score =rf_model.predict_proba(XCV_test)
         rocauccv = roc_auc_score(YCV_test, cvy_score[:,1])
@@ -123,21 +131,44 @@ for combo in combinations:
         #collect data
         f1_drop_temp.append(f1_drop)
         f1_cvtest_temp.append(f1_test)
+        cv_pr_auc_temp.append(cv_pr_auc)
 
+    
     # make a record
-    f1_record[tuple(combo.values())] = f1_drop_temp
+    cv_pr_auc_temp_mean = mean(cv_pr_auc_temp)
+    cv_pr_auc_temp_std = std(cv_pr_auc_temp)
+    f1_cvtest_temp_mean = mean(f1_cvtest_temp)
+    f1_cvtest_temp_std = std(f1_cvtest_temp)
+    f1_drop_temp_mean = mean(f1_drop_temp)
+    f1_drop_temp_std = std(f1_drop_temp)
+    cv_record[str(combo)] = [f"{cv_pr_auc_temp_mean:.3f} ± {cv_pr_auc_temp_std:.3f}", f"{f1_cvtest_temp_mean:.3f} ± {f1_cvtest_temp_std:.3f}", f"{f1_drop_temp_mean:.3f} ± {f1_drop_temp_std:.3f}"]
+    #f1_record[tuple(combo.values())] = f1_drop_temp
 
-    if mean(f1_drop_temp) < f1_drop_best:
-        f1_drop_best = mean(f1_drop_temp)
-        f1_drop_std = std(f1_drop_temp)
+    if cv_pr_auc_temp_mean > cv_pr_auc_best:
+        # Obtain mean and std PR-AUC.
+        cv_pr_auc_best = cv_pr_auc_temp_mean
+        cv_pr_auc_std = cv_pr_auc_temp_std
+        # Obtain mean and std F1-score CV test.
+        f1_cvtest_best = f1_cvtest_temp_mean
+        f1_cvtest_std = f1_cvtest_temp_std
+        # Obtain mean and std F1-score drop of CV test.
+        f1_drop_best = f1_drop_temp_mean
+        f1_drop_std = f1_drop_temp_std
+        # Record best hyperparameter
         best_hyperparameter = combo
-        f1_cvtest_best = mean(f1_cvtest_temp)
-        f1_cvtest_std = std(f1_cvtest_temp)
+        
+    
 
 print(f"Best Parameters: {best_hyperparameter}")
 print(f"Best F1_drop: {f1_drop_best} ± {f1_drop_std}")
 print(f"Best F1_test: {f1_cvtest_best} ± {f1_cvtest_std}")
+print(f"Best PR-AUC: {cv_pr_auc_best} ± {cv_pr_auc_std}")
 
+# Record CV scores for evaluation
+print(cv_record)
+cv_report = pd.DataFrame.from_dict(cv_record)
+cv_report.index = ['PR-AUC', 'F1-Score', 'F1-drop']
+cv_report.transpose().to_csv(f'CV_report/cm_{fg_name[1]}.csv', index=True)
 
 
 # Test best hyperparameter
@@ -175,6 +206,16 @@ print(f"sklearn: {sklearn_result:.6f}")
 print(f"cuML:    {rocauc:.6f}")
 print(f"Diff:    {abs(rocauc - sklearn_result):.8f}")
 '''
+'''
+#PR AUC by trapezoidal rule
+precision, recall, thresholds = precision_recall_curve(Y_test, select_y_score)
+pr_auc = trapezoid(cp.asnumpy(precision), cp.asnumpy(recall))
+pr_auc = abs(pr_auc)  # trapz can return negative depending on order
+print(f"PR-AUC CuML: {pr_auc:.4f}")
+
+pr_auc = average_precision_score(cp.asnumpy(Y_test), cp.asnumpy(select_y_score))
+print(f"PR-AUC: {pr_auc:.4f}")
+'''
 
 # F1 Score
 f1_test = f1_score(Y_test.to_numpy(), Y_pred.to_numpy())     #already ndarray, but need use get as it is in gpu
@@ -186,7 +227,7 @@ print(f"F1_drop Test Result: {f1_drop}")
 
 
 ####################################################
-
+'''
 cm = confusion_matrix(Y_test.to_numpy(), Y_pred.to_numpy())
 cm_df = pd.DataFrame(cm.get(), index=[0,1], columns=[0,1])
 print(f"Confusion Matrix: {cm}")
@@ -196,3 +237,4 @@ cr = classification_report(Y_test.to_numpy(), Y_pred.to_numpy(), output_dict=Tru
 cr_df = pd.DataFrame(cr).transpose()
 print(f"Classification Report: {cr_df}")
 #cr_df.to_csv(f'classification_report/cr_{fg_name}.csv', index=True)
+'''

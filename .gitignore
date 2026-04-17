@@ -1,6 +1,7 @@
 backup/
 classification_report/
 confusion_matrix/
+CV_report/
 deprecated/
 jdx_files/
 pickled_model/
