@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thr Sep 24 2024 10:29:05 
-Updated on Thr Apr 09 2026
+Updated on Thr Apr 18 2026
 @author: khari
 
 Dependency:
@@ -18,6 +18,19 @@ import pandas as pd
 import rdkit
 from rdkit import Chem
 from rdkit.Chem import Fragments
+
+########################
+#   Define Functions   #
+########################
+def mol_from_inchi(inchi):
+    try:
+        mol = Chem.MolFromInchi(inchi)  # try normally first (sanitize=True by default)
+        if mol is None:
+            raise ValueError()
+        return mol
+    except:
+        mol = Chem.MolFromInchi(inchi, sanitize=False)  # only if normal fails
+        return mol
 
 ####################
 #   Main program   #
@@ -47,7 +60,7 @@ for each_mol in inchi:
     #print(each_mol)
     #if n == 2399:  #remove problematic INCHI
         #break
-    mol = Chem.MolFromInchi(each_mol, sanitize=False)   #sanitize false to avoid error when inchi have problem.
+    mol = mol_from_inchi(each_mol)
     for func_group in fragment_list:
         call_func = f'fr_{func_group}'
         obtain_func_group = getattr(rdkit.Chem.Fragments, call_func)

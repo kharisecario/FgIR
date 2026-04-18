@@ -93,7 +93,7 @@ for fg_name in dfy.columns.to_list():
     combinations = combine_dict_values(param_grid)
     skf = StratifiedKFold(n_splits=3, random_state=34)
     #cv_f1_drop_best = 1
-    pr_auc_best = 1
+    cv_pr_auc_best = 0
 
     # Change the training df to numpy then cupy as required for it to work
     numpy_array = X_train.to_numpy()
@@ -191,7 +191,7 @@ for fg_name in dfy.columns.to_list():
     # Dumping all important information into file
 
     cm = confusion_matrix(Y_test.to_numpy(), Y_pred.to_numpy())
-    cm_df = pd.DataFrame(cm, index=[0,1], columns=[0,1])
+    cm_df = pd.DataFrame(cm.get(), index=[0,1], columns=[0,1])
     cm_df.to_csv(f'confusion_matrix/cm_{fg_name}.csv', index=True)
 
     '''
