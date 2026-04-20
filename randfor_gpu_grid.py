@@ -19,7 +19,7 @@ import os, time, joblib
 from cuml import RandomForestClassifier
 from cuml.model_selection import train_test_split, StratifiedKFold
 from cuml.metrics import accuracy_score, confusion_matrix
-from sklearn.metrics import f1_score, classification_report, average_precision_score
+from sklearn.metrics import f1_score, precision_score, recall_score, average_precision_score, roc_auc_score, matthews_corrcoef
 import pandas as pd
 import cupy as cp
 from numpy import mean, std
@@ -60,12 +60,18 @@ model_feature_importance = {}
 X = pd.read_csv('XYsnv.csv') #XYnorm XYsnv XYsnvnorm
 dfy = pd.read_csv('label_fg_present.csv')
 
-# Remove fg that has <2 appearance
-less_appear_label = ['alkyl_carbamate','barbitur','benzodiazepine','diazo','dihydropyridine','guanido','lactam','prisulfonamd','quatN','tetrazole']
+# Remove fg that has <6 appearance
+less_appear_label = ['alkyl_carbamate','barbitur','benzodiazepine','diazo','dihydropyridine',
+                     'guanido','lactam','quatN','tetrazole']
 for i in less_appear_label:
     del dfy[i]
-# Remove fg that has <3% appeareance
-less_appear_label = ['pyridine', 'C_S', 'amide', 'Ar_COO', 'isothiocyan', 'aldehyde', 'nitro_arom_nonortho', 'sulfide', 'SH', 'Ar_NH', 'Nhpyrrole', 'thiophene', 'term_acetylene', 'Ndealkylation1', 'imidazole', 'furan', 'imide', 'lactone', 'Ndealkylation2', 'hdrzone', 'piperdine', 'isocyan', 'sulfone', 'epoxide', 'sulfonamd', 'thiazole', 'oxime', 'morpholine', 'amidine', 'azo', 'phos_acid', 'phos_ester', 'hdrzine', 'nitroso', 'piperzine', 'thiocyan', 'urea', 'HOCCN', 'priamide', 'N_O', 'oxazole', 'azide']
+# Remove fg that has <1% appeareance
+less_appear_label = ['HOCCN', 'azide', 'N_O', 'oxazole', 'priamide', 
+                     'amidine', 'azo', 'epoxide', 'furan', 'hdrzine',
+                     'hdrzone', 'imidazole', 'imide', 'isocyan', 'lactone',
+                     'morpholine', 'Ndealkylation1', 'Ndealkylation2', 'nitroso', 'oxime', 
+                     'phos_acid', 'phos_ester', 'piperdine', 'piperzine', 'prisulfonamd',
+                     'sulfonamd', 'sulfone', 'thiazole', 'thiocyan', 'urea']
 for i in less_appear_label:
     del dfy[i]
 
@@ -163,7 +169,7 @@ for fg_name in dfy.columns.to_list():
     print(cv_record)
     cv_report = pd.DataFrame.from_dict(cv_record)
     cv_report.index = ['PR-AUC', 'F1-Score', 'F1-drop']
-    cv_report.transpose().to_csv(f'CV_report/cm_{fg_name[1]}.csv', index=True)
+    cv_report.transpose().to_csv(f'CV_report/cv_{fg_name}.csv', encoding="utf-8-sig", index=True)
 
 
     ###################################################
@@ -183,10 +189,23 @@ for fg_name in dfy.columns.to_list():
     f1_train = f1_score(Y_train.to_numpy(), Y_pred_train.to_numpy())
     f1_drop = abs(f1_train - f1_test)
 
+    # Precision, Recall, Matthew Coef (MCC)
+    precision = precision_score(Y_test.to_numpy(), Y_pred.to_numpy())
+    recall = recall_score(Y_test.to_numpy(), Y_pred.to_numpy())
+    mcc = matthews_corrcoef(Y_test.to_numpy(), Y_pred.to_numpy())
+
+    #PR-AUC
+    Y_score = rf_model.predict_proba(X_test)
+    Y_pr_auc = average_precision_score(Y_test, Y_score.iloc[:, 1])
+    Y_roc_auc = roc_auc_score(Y_test, Y_score.iloc[:, 1])
+
     print(f">>> RF Accuracy: {cu_accuracy:.2f}")
     print(f">>> F1_drop Test Result: {f1_drop:.2f}")
-    print(f"    elapsed test time >>> {time.time()-loop_time}")
-    model_performance[fg_name] = [best_hyperparameter, round(cu_accuracy,2), round(f1_test,2), round(f1_drop,2), round(rf_model.oob_score_,2), round(cv_pr_auc_best,2), round(cv_pr_auc_std,2), round(f1_cvtest_best,2), round(f1_cvtest_std,2), round(f1_drop_best,2), round(f1_drop_std,2)]
+    print(f"    elapsed test time >>> {(time.time()-loop_time):.0f} s")
+    model_performance[fg_name] = [best_hyperparameter, round(cu_accuracy,3), round(precision,3), round(recall,3), round(mcc,3),
+                                  round(Y_pr_auc,3), round(Y_roc_auc,3), round(f1_test,3), round(f1_drop,3), round(rf_model.oob_score_,3), 
+                                  round(cv_pr_auc_best,3), round(cv_pr_auc_std,3), round(f1_cvtest_best,3), round(f1_cvtest_std,3), round(f1_drop_best,3), 
+                                  round(f1_drop_std,3)]
 
     # Dumping all important information into file
 
@@ -203,26 +222,20 @@ for fg_name in dfy.columns.to_list():
 
     # Obtain Feature Importance:
     model_feature_importance[fg_name] = rf_model.feature_importances_
-    
-    #rf_model.feature_importances_.to_csv('trial_feature_importances.csv', index=True)      #its numpy not pandas.
-    pd.DataFrame({
-        'feature': X_train.columns,
-        'importance': rf_model.feature_importances_
-    }).to_csv('trial_feature_importances.csv', index=False)
 
     joblib.dump(rf_model, f'pickled_model/cuml_{fg_name}.pkl')
 
 
-print(f'>>> Elapsed Time for all FG = {time.time()-start_time} s')
+print(f'>>> Elapsed Time for all FG = {((time.time()-start_time)/60):.0f} min(s)')
 
 # Finish Loop, save results
 model_performance_df = pd.DataFrame.from_dict(model_performance)
-model_performance_df.index = ['Best Hyperparameter', 'Model Accuracy', 'Model F1_test', 'Model F1_drop', 'Model OOB_Score', 'CV PR-AUC (avg)', 'CV PR-AUC (std)', 'CV F1_Score (avg)', 'CV F1_score (std)', 'CV F1_drop (avg)', 'CV F1_drop (std)']
+model_performance_df.index = ['Best Hyperparameter', 'Model Accuracy', 'Model Precision', 'Model Recall', 'Model MCC', 'Model PR-AUC', 'Model ROC-AUC', 'Model F1_test', 'Model F1_drop', 'Model OOB_Score', 'CV PR-AUC (avg)', 'CV PR-AUC (std)', 'CV F1_Score (avg)', 'CV F1_score (std)', 'CV F1_drop (avg)', 'CV F1_drop (std)']
 model_performance_df.transpose().to_csv('randfor_performance.csv', index=True, header=True)
 
 model_feature_importance_df = pd.DataFrame.from_dict(model_feature_importance)
 model_feature_importance_df.index = X_train.columns
-model_feature_importance_df.to_csv('randfor_performance.csv', index=True, header=True)
+model_feature_importance_df.to_csv('feature_importances.csv', index=True, header=True)
 
 
 
