@@ -19,7 +19,7 @@ fg_columns    = df.columns[1:]         # remaining 40 columns → functional gro
 
 # ── Plot each functional group ───────────────────────────────────────────────
 for fg in fg_columns:
-    fig, ax = plt.subplots(figsize=(8,5)) # 5:3 aspect ratio can use 10,6 or 15,9
+    fig, ax = plt.subplots(figsize=(10,8)) # 5:3 aspect ratio can use 10,6 or 15,9. default: 8,5
 
     # Line plot
     ax.plot(wavenumbers, df[fg], linewidth=1.2, label=fg)
@@ -58,13 +58,15 @@ for fg in fg_columns:
     )
 
     # ── Axis labels ─────────────────────────────────────────────────────────
-    ax.set_xlabel("Wavenumber (cm⁻¹)", fontsize=20, fontfamily="Arial")
-    ax.set_ylabel("Feature Importance",  fontsize=20, fontfamily="Arial")
+    #ax.set_xlabel("Wavenumber (cm⁻¹)", fontsize=20, fontfamily="Arial") # Arial do not support superscript minus glyph
+    ax.set_xlabel("Wavenumber (cm$^{-1}$)", fontsize=20, fontfamily="Arial", fontweight='bold')
+    ax.set_ylabel("Importance (%)",  fontsize=20, fontfamily="Arial", fontweight='bold')
 
     # ── Tick label font ──────────────────────────────────────────────────────
     for label in ax.get_xticklabels() + ax.get_yticklabels():
         label.set_fontfamily("Arial")
         label.set_fontsize(16)
+        label.set_fontweight('bold')
 
     # ── Legend inside plot, 1 pt border ─────────────────────────────────────
     legend = ax.legend(
@@ -81,9 +83,10 @@ for fg in fg_columns:
 
     # Safe filename (replace special characters)
     safe_name = str(fg).replace("/", "_").replace("\\", "_").replace(" ", "_")
-    out_path  = os.path.join(OUTPUT_DIR, f"{safe_name}.png")
-    fig.savefig(out_path, dpi=300, bbox_inches="tight")
-    #fig.savefig(out_path, format="svg", bbox_inches="tight")
+    #out_path  = os.path.join(OUTPUT_DIR, f"{safe_name}.png")
+    #fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    out_path  = os.path.join(OUTPUT_DIR, f"{safe_name}.svg")
+    fig.savefig(out_path, format="svg", bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {out_path}")
 
