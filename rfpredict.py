@@ -26,7 +26,7 @@ RFprediction = {}
 start_time = time.time()
 
 ### Import X data as dataframe
-X = pd.read_csv('XYsnv.csv') #XYnorm XYsnv XYsnvnorm
+X = pd.read_csv('ftir_snv.csv', index_col=0) #XYnorm XYsnv XYsnvnorm
 
 ### Prepare all pickled model:
 for filename in os.listdir(directory):
@@ -34,19 +34,18 @@ for filename in os.listdir(directory):
     #filepath = os.path.join(directory, filename)
     model = load(os.path.join(directory, filename))
     pred_result = model.predict(X)
-    print(pred_result)
+    #print(pred_result)
     FGname = re.sub(r'cuml_', '', os.path.splitext(filename)[0])
     RFprediction[FGname] = pred_result
 
     # To close the model so that there is no attribute error
     rf_model = None 
 
-    print(f"    time for predict {FGname} >>> {time.time()-loop_time}")
+    print(f"    time for predict {FGname} >>> {(time.time()-loop_time):.3f} s")
 
 
-print(f"    Total elapsed time >>> {time.time()-start_time}")
+print(f"    Total elapsed time >>> {(time.time()-start_time):.3f} s")
 RFprediction_df = pd.DataFrame.from_dict(RFprediction)
-RFprediction_df.to_csv('RFprediction.csv', index=False, header=True)
-
-
+RFprediction_df.index = X.index.to_list()
+RFprediction_df.to_csv('RF_prediction.csv', index=True, header=True)
 
