@@ -2,8 +2,9 @@
 FgIR is ML model for functional group present from the IR spectra.
 
 ## Prerequisite:
-- [nistchempy](https://pypi.org/project/nistchempy/)
-- [rdkit](https://www.rdkit.org/docs/Install.html)
+- [nistchempy](https://pypi.org/project/nistchempy/) v.0.2.3 
+- [rdkit](https://www.rdkit.org/docs/Install.html) v.2026.03.1
+- [CuML-cu12](https://github.com/rapidsai/cuml) v.26.4.0
 
 ## Output:
 - **jdx_files/** to store all NIST scrapped data.
@@ -31,7 +32,7 @@ From all collected IR spectra, it further selected to be the only one with absor
 ## 3. Read needed information from the JCamp file and interpolate data
     *readjcamp* (run automatically with *collectpoint*)
     Information such as wavelength, intensity, molecule name, CAS number, INCHI, etc.
-    > Output: *moldataset.csv* for all the list extracted information.
+    Output: *moldataset.csv* for all the list extracted information.
 
 *collectpoint*
 All the intensity vs wavelength data are collected. Wavelength is interpolated by cubic spline interpolation to have uniform number of data and range.
