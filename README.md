@@ -67,8 +67,10 @@ Added to plot feature importance value.
 
 ## 7. Predict with saved model
 > Preparation:
-> Use *getxynorm_ftir* to first normalized your FTIR spectra. Need to be absorbance.
-> It can be normalized based on your choice.
+> FTIR Spectra data (digitized/experiment). 
+> Spectra need to be in absorbance. If its transmittance, convert by A=-log10(T/Tmax). If its Transmittance obtained from experiment, convert by A=-log10(%T/100).
+> Use *getxynorm_ftir* to first normalized your FTIR (absorbance) spectra.
+> It can be normalized based on your choice (max/SNV).
 > Header are wavenumber, index are samples.
 
 *rfpredict.py*
