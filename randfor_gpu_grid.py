@@ -15,7 +15,9 @@ Dependency:
 
 """
 ### Import all required dependencies
-import os, time, joblib
+import os, time, joblib, shutil
+from pathlib import Path            # For creating backup
+from datetime import datetime       # For creating backup
 from cuml import RandomForestClassifier
 from cuml.model_selection import train_test_split, StratifiedKFold
 from cuml.metrics import accuracy_score, confusion_matrix
@@ -42,11 +44,26 @@ def combine_dict_values(input_dict):
     
     return result
 
-# Create directory for output
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+backup_dir = Path('backups')
+
+# ─── Backup a directory if exist and create it if not  ───────────────
 out_dir = ['pickled_model', 'confusion_matrix', 'CV_report']
 for directory in out_dir:
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+    dir_path = Path(directory)
+    if dir_path.exists():
+        backup_path = backup_dir / f"{dir_path.name}_{timestamp}"
+        shutil.copytree(dir_path, backup_path)
+    dir_path.mkdir(parents=True, exist_ok=True)
+
+# ─── Prepare a backup for consecutive output files  ───────────────
+files_to_backup = ['randfor_performance.csv', 'feature_importances.csv']
+backup_dir.mkdir(parents=True, exist_ok=True)
+for file in files_to_backup:
+    file_path = Path(file)
+    if file_path.exists():
+        backup_path = backup_dir / f"{file_path.stem}_{timestamp}.bak"
+        shutil.copy2(file_path, backup_path)
 
 
 ####################
@@ -65,6 +82,7 @@ less_appear_label = ['alkyl_carbamate','barbitur','benzodiazepine','diazo','dihy
                      'guanido','lactam','quatN','tetrazole']
 for i in less_appear_label:
     del dfy[i]
+'''
 # Remove fg that has <1% appeareance
 less_appear_label = ['HOCCN', 'azide', 'N_O', 'oxazole', 'priamide', 
                      'amidine', 'azo', 'epoxide', 'furan', 'hdrzine',
@@ -74,12 +92,15 @@ less_appear_label = ['HOCCN', 'azide', 'N_O', 'oxazole', 'priamide',
                      'sulfonamd', 'sulfone', 'thiazole', 'thiocyan', 'urea']
 for i in less_appear_label:
     del dfy[i]
-
+'''
 # Collect hyperparameters for tuning:
-param_grid = {'max_depth':[5,10,15],
-              'max_features':['log2','sqrt'],
-              #'max_leaf_nodes':[None,2,3,4,5],     # not supported in cuML
-              }
+param_grid = {
+    "max_depth":        [3, 5, 10, 15, 20, None],  # add shallower (3) and None
+    "max_features":     ["log2", "sqrt", 0.3, 0.5, 0.8],  # add ratio-based
+    "n_estimators":     [100, 300, 500],
+    "min_samples_leaf": [1, 2, 4, 8],              # important for small datasets
+    "min_samples_split":[2, 5, 10],
+}
 
 
 
@@ -166,7 +187,7 @@ for fg_name in dfy.columns.to_list():
     print(f">>> Best CV PR-AUC: {cv_pr_auc_best:.2f} ± {cv_pr_auc_std:.2f}")
 
     # Record CV scores for evaluation
-    print(cv_record)
+    # print(cv_record)
     cv_report = pd.DataFrame.from_dict(cv_record)
     cv_report.index = ['PR-AUC', 'F1-Score', 'F1-drop']
     cv_report.transpose().to_csv(f'CV_report/cv_{fg_name}.csv', encoding="utf-8-sig", index=True)

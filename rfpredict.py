@@ -11,7 +11,9 @@ known issues:
 
 """
 ### Import all required dependencies
-import os, time, re
+import os, time, re, shutil
+from pathlib import Path            # For creating backup
+from datetime import datetime       # For creating backup
 from joblib import load
 import pandas as pd
 
@@ -21,15 +23,25 @@ directory = 'pickled_model'
 RFprediction = {}
 RFproba = {}
 
+# ─── Prepare a backup for consecutive output file ───────────────
+files_to_backup = ['RF_prediction.csv', 'RF_probability.csv']
+backup_dir = Path('backups')
+backup_dir.mkdir(parents=True, exist_ok=True)
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+for file in files_to_backup:
+    file_path = Path(file)
+    if file_path.exists():
+        backup_path = backup_dir / f"{file_path.stem}_{timestamp}.bak"
+        shutil.copy2(file_path, backup_path)
+
 ####################
 #   Main program   #
 ####################
-start_time = time.time()
-
 ### Import X data as dataframe
 X = pd.read_csv('ftir_snv.csv', index_col=0) #XYnorm XYsnv XYsnvnorm
 
 ### Prepare all pickled model:
+start_time = time.time()
 for filename in os.listdir(directory):
     loop_time = time.time()
     #filepath = os.path.join(directory, filename)
