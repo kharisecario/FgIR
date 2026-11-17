@@ -31,7 +31,7 @@ def snv(df):
 df = pd.read_csv('XYfeature.csv')
 
 # apply normalized raw
-xy_norm = df.apply(lambda x: x / x.max(), axis=1)
+xy_norm = df.apply(lambda x: x / x.max(), axis=1) # WARNING THIS ONLY SCALE MAX, works if its absorbance with proper 0 baseline!
 #xy_norm = df.apply(lambda x: (x - x.min()) / (x.max() - x.min()), axis=1)
 
 # apply standard normal variate, because based on row, we need to transpose the df first to make each molecules per row.
