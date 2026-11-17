@@ -1,5 +1,6 @@
 # FgIR
 FgIR is ML model for functional group present from the IR spectra.
+If you use this tool, please cite Secario, M. K. and Lue S. J. (2026) [https://doi.org/10.1021/acsomega.6c11174](https://doi.org/10.1021/acsomega.6c11174)
 
 ## Prerequisite:
 - [nistchempy](https://pypi.org/project/nistchempy/) v.0.2.3 
